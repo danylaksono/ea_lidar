@@ -58,19 +58,60 @@ def download_tile(zipf, download=False, product_list=[],
     driver.get("https://environment.data.gov.uk/DefraDataDownload/?Mode=survey")
     wait = WebDriverWait(driver, 300)
 
+
+    if verbose: print('...waiting for sidebar to load')
+    wait.until(EC.presence_of_element_located((By.CSS_SELECTOR, ".sidebar-content")))
+
+    if verbose: print('...waiting for download selector to load')
+    wait.until(EC.presence_of_element_located((By.CSS_SELECTOR, ".fswiLB select")))
+    select_element = Select(driver.find_element(By.CSS_SELECTOR, ".fswiLB select"))
+    select_element.select_by_value("Upload shapefile")
+
+
     if verbose: print('...waiting for shapefile to load')
-    wait.until(EC.presence_of_element_located((By.CSS_SELECTOR, "#fileid")))
-    driver.find_element(by=By.CSS_SELECTOR, value="#fileid").send_keys([zipf])
+    # wait.until(EC.presence_of_element_located((By.CSS_SELECTOR, "#fileid")))
+    # driver.find_element(by=By.CSS_SELECTOR, value="#fileid").send_keys([zipf])
+    wait.until(EC.presence_of_element_located((By.CSS_SELECTOR, ".shapefile-upload input")))
+    driver.find_element(By.CSS_SELECTOR, ".shapefile-upload input").send_keys(zipf)
+
+    if verbose: print('...waiting for Get Tile Selector to load')
+    wait.until(EC.element_to_be_clickable((By.CSS_SELECTOR, ".download-button")))
+    driver.find_element(By.CSS_SELECTOR, ".download-button").click()
+
+    if verbose: print('...listing all available tiles')
+    wait.until(EC.presence_of_element_located((By.CSS_SELECTOR, ".tiles-list a")))
+    links = driver.find_elements(By.CSS_SELECTOR, ".tiles-list a")
+
+    for link in links:
+        href = link.get_attribute("href")
+        name = link.text
+        print(f"Product: {name}")
+        print(f"Link: {href}")
+
+    if links:
+    # Enable multiple downloads in Chrome
+        if browser == 'chrome':
+            driver.execute_cdp_cmd('Page.setDownloadBehavior', {
+                'behavior': 'allow',
+                'downloadPath': os.path.abspath(args.odir)
+            })
+        
+        wait.until(EC.element_to_be_clickable((By.CSS_SELECTOR, ".jhMoJR")))
+        driver.find_element(By.CSS_SELECTOR, ".jhMoJR").click()
+
+    # if verbose: print('...waiting for shapefile to load')
+    # wait.until(EC.presence_of_element_located((By.CSS_SELECTOR, "#fileid")))
+    # driver.find_element(by=By.CSS_SELECTOR, value="#fileid").send_keys([zipf])
 
    
-    wait.until(EC.presence_of_element_located((By.CSS_SELECTOR, ".grid-item-container")))
-    wait.until(EC.element_to_be_clickable((By.CSS_SELECTOR, ".grid-item-container")))
+    # wait.until(EC.presence_of_element_located((By.CSS_SELECTOR, ".grid-item-container")))
+    # wait.until(EC.element_to_be_clickable((By.CSS_SELECTOR, ".grid-item-container")))
 #    try:
 #        wait.until(EC.element_to_be_clickable((By.CSS_SELECTOR, ".grid-item-container")))
 #    except TimeoutException:
 #        if driver.find_element_by_css_selector( 'div.errorsContainer:nth-child(1)').is_displayed():
 #            raise Exception("The AOI Polygon uploaded exceeds the maximum number of vertices allowed. Use a less complex polygon The maximum vertex count is : 1000")
-    E1 = driver.find_element(by=By.CSS_SELECTOR, value=".grid-item-container")
+    # E1 = driver.find_element(by=By.CSS_SELECTOR, value=".grid-item-container")
 
     if verbose: print('...waiting for available products to load') 
     while True: # hack :(

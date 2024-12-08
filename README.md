@@ -1,5 +1,18 @@
 # ea_lidar
+
 Python code to bulk download UK Environment Agency LiDAR data
+
+Updated from [https://github.com/philwilkes/ea_lidar](https://github.com/philwilkes/ea_lidar) to deal with the updated DEFRA Lidar downloader.
+
+## Preparation
+
+Install the necessary `webdriver-manager` to match updated chrome driver API:
+
+```
+pip install webdriver-manager --upgrade
+```
+
+## Usage
 
 ```
 usage: ea_lidar.py [-h] [--print-only] [--odir ODIR] [--year YEAR] [--all-years] [--open-browser] [--browser BROWSER] [--verbose] [--point-cloud] [--dsm] [--dtm] extent
