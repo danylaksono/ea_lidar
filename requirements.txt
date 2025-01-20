@@ -34,3 +34,6 @@ trio-websocket==0.9.2
 urllib3==1.26.9
 webdriver-manager
 wsproto==1.1.0
+asyncio
+pyarrow
+aiohttp

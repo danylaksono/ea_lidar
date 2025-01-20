@@ -330,11 +330,14 @@ class TileDownloader:
 
     async def download_tile(self, product: str, year: str, tile_key: str, output_dir: Path) -> Path:
         """Download a specific tile."""
-        if not self._validate_tile_key(tile_key):
-            raise ValueError(f"Invalid tile key format: {tile_key}")
+        # if not self._validate_tile_key(tile_key):
+            # raise ValueError(f"Invalid tile key format: {tile_key}")
 
         url = self._construct_url(product, year, tile_key)
         output_path = Path(output_dir) / f"{product}_{year}_{tile_key}.tif"
+        os.makedirs(output_dir, exist_ok=True)
+
+        print(f"Downloading Tile {tile_key} from url: {url}")
 
         try:
             with DownloadProgressBar(

@@ -1,6 +1,7 @@
 import asyncio
 from pathlib import Path
 from lidar_downloader import LidarDownloader, DownloaderConfig, TileDownloader
+from tile_downloader import download_lidar_dsm
 
 # Example 1: Using the general downloader
 async def download_lidar():
@@ -25,7 +26,7 @@ async def download_specific_tile():
     await tile_downloader.download_tile(
         product="national_lidar_programme_dsm",
         year="2023",
-        tile_key="SP5510",
+        tile_key="ST57SW",
         output_dir=Path("./data")
     )
 
@@ -44,7 +45,18 @@ async def download_specific_tile():
         output_dir=Path("./data")
     )
 
+# specific tile downloader
+async def tile_downloader():
+    os_grids = './data/os_bng_grids.parquet'
+    await download_lidar_dsm('ST68NW',
+                   parquet_path=os_grids,
+                   output_dir='downloads',
+                   verbose=True)
+
+
+
+
 # Run the examples
 if __name__ == "__main__":
-    asyncio.run(download_lidar())
-    asyncio.run(download_specific_tile())
+    # asyncio.run(download_lidar())
+    asyncio.run(tile_downloader())
