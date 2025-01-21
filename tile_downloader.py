@@ -187,7 +187,10 @@ async def download_lidar_dsm(tile_names: Union[str, List[str]],
 
                     # Download each matching product
                     for name, href in matching_products:
-                        output_file = os.path.join(output_dir, f"{name}.tif")
+                        # Create output directory for the tile
+                        tile_output_dir = os.path.join(output_dir, f"{tile_name}")
+                        os.makedirs(tile_output_dir, exist_ok=True)
+                        output_file = os.path.join(tile_output_dir, f"{name}.zip")
                         if os.path.exists(output_file):
                             if verbose:
                                 print(f"\nFile {output_file} already exists. Skipping download.")
@@ -199,6 +202,23 @@ async def download_lidar_dsm(tile_names: Union[str, List[str]],
                 else:
                     if verbose:
                         print(f"\nNo matching products found for tile {tile_name}")
+                        print("Downloading all listed tiles instead.")
+                    # Create output directory for the tile
+                    tile_output_dir = os.path.join(output_dir, f"{tile_name}")
+                    os.makedirs(tile_output_dir, exist_ok=True)
+
+                    # Download all listed tiles
+                    for link in links:
+                        href = link.get_attribute("href")
+                        name = link.text
+                        output_file = os.path.join(tile_output_dir, f"{name}.zip")
+                        if os.path.exists(output_file):
+                            if verbose:
+                                print(f"\nFile {output_file} already exists. Skipping download.")
+                            continue
+                        if verbose:
+                            print(f"\nDownloading {name} to {output_file}")
+                        await download_file(href, output_file, session)
 
             finally:
                 if verbose:

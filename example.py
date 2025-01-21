@@ -56,7 +56,7 @@ async def tile_downloader(tile_key: str = 'ST68NW'):
 
 # Run the examples
 if __name__ == "__main__":
-    tile = 'ST25NE'
+    tile = 'TV09NW'
 
     # individual tile
     asyncio.run(tile_downloader(tile))
