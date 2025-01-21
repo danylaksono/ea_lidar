@@ -187,6 +187,10 @@ async def download_lidar_dsm(tile_names: Union[str, List[str]],
                     # Download each matching product
                     for name, href in matching_products:
                         output_file = os.path.join(output_dir, f"{name}.tif")
+                        if os.path.exists(output_file):
+                            if verbose:
+                                print(f"\nFile {output_file} already exists. Skipping download.")
+                            continue
                         if verbose:
                             print(f"\nDownloading {name} to {output_file}")
                         await download_file(href, output_file, session)
@@ -201,6 +205,7 @@ async def download_lidar_dsm(tile_names: Union[str, List[str]],
                 driver.quit()
                 if verbose:
                     print("Browser closed.")
+                await asyncio.sleep(10)  # 10 seconds delay between tiles
 
     # Cleanup temp directory
     import shutil

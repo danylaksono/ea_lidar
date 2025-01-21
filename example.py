@@ -46,9 +46,9 @@ async def download_specific_tile():
     )
 
 # specific tile downloader
-async def tile_downloader():
+async def tile_downloader(tile_key: str = 'ST68NW'):
     os_grids = './data/os_bng_grids.parquet'
-    await download_lidar_dsm('ST68NW',
+    await download_lidar_dsm(tile_names=tile_key,
                    parquet_path=os_grids,
                    output_dir='downloads',
                    verbose=True)
@@ -58,5 +58,11 @@ async def tile_downloader():
 
 # Run the examples
 if __name__ == "__main__":
-    # asyncio.run(download_lidar())
-    asyncio.run(tile_downloader())
+    tile = 'ST68NW'
+
+    # individual tile
+    # asyncio.run(tile_downloader(tile))
+
+    tiles = ['ST68NW', 'ST68NE', 'ST68SW', 'ST68SE']
+    # test multiple tiles
+    asyncio.run(tile_downloader(tiles))
