@@ -8,6 +8,7 @@ import re
 import glob
 import urllib.request
 import pyarrow
+import asyncio
 
 from zipfile import ZipFile
 from typing import Union, List

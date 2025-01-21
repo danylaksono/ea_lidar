@@ -54,15 +54,13 @@ async def tile_downloader(tile_key: str = 'ST68NW'):
                    verbose=True)
 
 
-
-
 # Run the examples
 if __name__ == "__main__":
-    tile = 'ST68NW'
+    tile = 'ST25NE'
 
     # individual tile
-    # asyncio.run(tile_downloader(tile))
+    asyncio.run(tile_downloader(tile))
 
     tiles = ['ST68NW', 'ST68NE', 'ST68SW', 'ST68SE']
     # test multiple tiles
-    asyncio.run(tile_downloader(tiles))
+    # asyncio.run(tile_downloader(tiles))
