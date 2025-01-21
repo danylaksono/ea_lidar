@@ -1,11 +1,17 @@
 import os
 import uuid
 import tempfile
-from zipfile import ZipFile
+import aiohttp
 import geopandas as gpd
 import time
-import aiohttp
-import asyncio
+import re
+import glob
+import urllib.request
+import pyarrow
+
+from zipfile import ZipFile
+from typing import Union, List
+from tqdm.auto import tqdm
 from selenium import webdriver
 from selenium.webdriver.support.ui import Select, WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
@@ -13,10 +19,6 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.chrome.service import Service
 from webdriver_manager.chrome import ChromeDriverManager
-import glob
-from typing import Union, List
-from tqdm.auto import tqdm
-import re
 
 class DownloadProgressBar(tqdm):
     def update_to(self, b=1, bsize=1, tsize=None):
@@ -38,10 +40,10 @@ async def download_file(url: str, output_path: str, session: aiohttp.ClientSessi
             print(f"Failed to download {url}. Status code: {response.status}")
 
 async def download_lidar_dsm(tile_names: Union[str, List[str]],
-                           parquet_path: str,
-                           output_dir: str = '.',
-                           verbose: bool = True,
-                           year: str = 'latest') -> None:
+                      parquet_path: str,
+                      output_dir: str = '.',
+                      verbose: bool = True,
+                      year: str = 'latest') -> None:
     """
     Download National LIDAR Programme DSM data for specified tile names.
 
@@ -101,36 +103,59 @@ async def download_lidar_dsm(tile_names: Union[str, List[str]],
                                     options=options)
 
             try:
-                # Navigate to website
+                # Access DEFRA data download page
                 if verbose:
                     print("Accessing DEFRA data download page...")
                 driver.get("https://environment.data.gov.uk/DefraDataDownload/?Mode=survey")
+                if verbose:
+                    print("Navigated to DEFRA data download page.")
                 wait = WebDriverWait(driver, 300)
 
-                # Wait for and select upload option
+                # Wait for upload option
+                if verbose:
+                    print("Waiting for upload option to be present...")
                 wait.until(EC.presence_of_element_located((By.CSS_SELECTOR, ".fswiLB select")))
+                if verbose:
+                    print("Upload option found.")
                 select_element = Select(driver.find_element(By.CSS_SELECTOR, ".fswiLB select"))
+                if verbose:
+                    print("Selecting 'Upload shapefile' option.")
                 select_element.select_by_value("Upload shapefile")
 
                 # Upload shapefile
+                if verbose:
+                    print("Waiting for shapefile upload input...")
                 wait.until(EC.presence_of_element_located((By.CSS_SELECTOR, ".shapefile-upload input")))
+                if verbose:
+                    print(f"Uploading shapefile from {zip_path}...")
                 driver.find_element(By.CSS_SELECTOR, ".shapefile-upload input").send_keys(zip_path)
+                if verbose:
+                    print("Shapefile uploaded.")
 
                 # Click Get Tile Selector
+                if verbose:
+                    print("Clicking 'Get Tile Selector' button...")
                 wait.until(EC.element_to_be_clickable((By.CSS_SELECTOR, ".download-button")))
                 driver.find_element(By.CSS_SELECTOR, ".download-button").click()
+                if verbose:
+                    print("'Get Tile Selector' button clicked.")
 
-                # Select "National Lidar Programme DSM" from product dropdown
-                select_element = wait.until(EC.presence_of_element_located((By.CSS_SELECTOR, "select.src__StyledSelect-sc-sgud4a-0.caJfrq")))
+
+                # click select product dropdown
+                if verbose:
+                    print("Clicking product dropdown...")
+                wait.until(EC.element_to_be_clickable((By.XPATH, "//label[text()='Select product']/following-sibling::select")))
+                select_element = driver.find_element(By.XPATH, "//label[text()='Select product']/following-sibling::select")
                 select = Select(select_element)
-                select.select_by_visible_text("National Lidar Programme DSM")
 
-                # Select the latest year
-                year_select = wait.until(EC.presence_of_element_located((By.CSS_SELECTOR, "select.year-select")))
-                select_year = Select(year_select)
-                years = [option.text for option in select_year.options]
-                latest_year = max(years)
-                select_year.select_by_visible_text(latest_year)
+                # Print available option values
+                for option in select.options:
+                    print(f"Option value: {option.get_attribute('value')}")
+
+                # Select the desired option
+                select.select_by_value("national_lidar_programme_dsm")
+                if verbose:
+                    print("Product selected: national_lidar_programme_dsm")
 
                 # Wait for and list all available tiles
                 if verbose:
@@ -174,17 +199,9 @@ async def download_lidar_dsm(tile_names: Union[str, List[str]],
                 if verbose:
                     print("Closing the browser.")
                 driver.quit()
-                print("Browser closed.")
+                if verbose:
+                    print("Browser closed.")
 
     # Cleanup temp directory
     import shutil
     shutil.rmtree(tmp_dir)
-
-# Example usage:
-# async def main():
-#     await download_lidar_dsm('ST68NW',
-#                             parquet_path='path/to/os_bng_grids.parquet',
-#                             output_dir='downloads',
-#                             verbose=True)
-#
-# asyncio.run(main())
